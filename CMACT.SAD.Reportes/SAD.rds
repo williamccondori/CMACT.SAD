@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RptDataSource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SAD">
+  <ConnectionProperties>
+    <Extension>SQL</Extension>
+    <ConnectString>Data Source=DESKTOP-DNBLF8A\SQLEXPRESS;Initial Catalog=BSC_DEV_1</ConnectString>
+  </ConnectionProperties>
+  <DataSourceID>c6e35e7f-09ca-4837-98fc-c25ffc82fc02</DataSourceID>
+</RptDataSource>

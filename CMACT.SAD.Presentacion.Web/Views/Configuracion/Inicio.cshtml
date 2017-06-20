@@ -1,0 +1,199 @@
+﻿@model CMACT.SAD.Presentacion.Web.Models.Configuracion.InicioViewModel
+@using System.Web.Script.Serialization
+@{ string loInicioViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Configuración"; }
+
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-12 col-md-24 col-lg-24">
+            <div>
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#TipoDocumento" aria-controls="TipoDocumento" role="tab" data-toggle="tab">Tipos de Documento</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="TipoDocumento">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    Todos los Tipos de Documento
+                                    <span class="badge" data-bind="text: $root.ListaTipoDocumento().length"></span>
+                                </h3>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-condensed table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo Documento</th>
+                                            <th class="text-center">
+                                                <button type="button" class="btn btn-xs btn-success" data-bind="click: $root.MostrarFormularioTipoDocumentoAgregar"><span class="glyphicon glyphicon-plus-sign"></span></button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach:  $root.ListaTipoDocumento">
+                                        <tr>
+                                            <td data-bind="text: Descripcion"></td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-xs btn-warning" data-bind="click: $root.MostrarFormularioTipoDocumentoModificar"><span class="glyphicon glyphicon-pencil"></span></button>
+                                                <button type="button" class="btn btn-xs btn-danger" data-bind="click: $root.EliminarTipoDocumento"><span class="glyphicon glyphicon-remove-sign"></span></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalTipoDocumento">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div data-bind="with: ObjetoTipoDocumento">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Ingrese los Datos Necesarios</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-6 col-lg-6">Tipo de Documento:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-18 col-lg-18">
+                                        <input type="text" class="form-control input-sm" placeholder="Ingrese el valor" data-bind="value: Descripcion">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.GuardarTipoDocumento">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var Modal = {
+            TipoDocumento: "#ModalTipoDocumento"
+        }
+
+        var mapping = {
+            ObjetoTipoDocumento: {
+                create: function (options) {
+                    return new TipoDocumentoViewModel(options.data);
+                }
+            }
+        }
+
+        var TipoDocumentoViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, {}, self);
+
+            self.Descripcion.extend({ required: true });
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Reset = function () {
+                ko.mapping.fromJS(data, {}, self);
+            }
+        }
+
+        var InicioViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Iniciar = function () {
+                self.ObtenerTipoDocumento();
+            }
+
+            self.ObtenerTipoDocumento = function () {
+                self.ListaTipoDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerTipoDocumento',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaTipoDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.MostrarFormularioTipoDocumentoAgregar = function () {
+                self.ObjetoTipoDocumento.Reset();
+                self.ObjetoTipoDocumento.EstadoObjeto(EstadoObjeto.Nuevo);
+                Bootstrap.AbrirModal(Modal.TipoDocumento);
+            }
+
+            self.MostrarFormularioTipoDocumentoModificar = function (TipoDocumento) {
+                self.ObjetoTipoDocumento.Reset();
+                ko.mapping.fromJS(TipoDocumento, {}, self.ObjetoTipoDocumento);
+                self.ObjetoTipoDocumento.EstadoObjeto(EstadoObjeto.Modificado);
+                Bootstrap.AbrirModal(Modal.TipoDocumento);
+            }
+
+            self.GuardarTipoDocumento = function () {
+                if (self.ObjetoTipoDocumento.isValid()) {
+                    if (confirm(MensajeConfirmacion.Guardar)) {
+                        $.ajax({
+                            type: EnvioHttp.Post,
+                            contentType: "application/json",
+                            url: '/Configuracion/GuardarTipoDocumento',
+                            data: ko.mapping.toJSON(self.ObjetoTipoDocumento),
+                            success: function (response) {
+                                if (response.Error == false) {
+                                    if (response.Datos){
+                                        alert(MensajeRespuesta.Exito);
+                                        self.ObtenerTipoDocumento();
+                                    } else {
+                                        alert(MensajeRespuesta.Error);
+                                    }
+                                } else {
+                                    alert(response.Mensaje);
+                                }
+                                Bootstrap.CerrarModal(Modal.TipoDocumento);
+                            }
+                        });
+                    }
+                } else {
+                    self.ObjetoTipoDocumento.Errores.showAllMessages(true);
+                }
+            }
+
+            self.EliminarTipoDocumento = function () {
+
+            }
+        }
+
+        var ViewModel = new InicioViewModel(@Html.Raw(loInicioViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+            ViewModel.Iniciar();
+        });
+
+    </script>
+}

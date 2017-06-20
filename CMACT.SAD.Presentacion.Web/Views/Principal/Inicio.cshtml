@@ -1,0 +1,28 @@
+﻿@{ ViewBag.Title = "Inicio"; }
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-12 col-md-8 col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Citaciones</h3>
+                </div>
+                <div class="panel-body">
+                    <p>Seleccione esta opción si desea realizar una citación, solo para usuarios con permisos.</p>
+                    <a href="@Url.Action("Inicio","Citacion")" class="btn btn-sm btn-primary">Ingresar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-24 col-sm-12 col-md-8 col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Derivación de Documentos</h3>
+                </div>
+                <div class="panel-body">
+                    <p>Seleccione esta opción si desea realizar la derivación de un documento, solo para usuarios con permisos.</p>
+                    <a href="@Url.Action("Inicio","Derivacion")" class="btn btn-sm btn-primary">Ingresar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,325 @@
+﻿@model CMACT.SAD.Presentacion.Web.Models.Derivacion.EntranteViewModel
+@using System.Web.Script.Serialization
+@{ string loEntranteViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Consultar Documentos Derivados Entrantes"; }
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            <div data-bind="with: ObjetoBusquedaDocumento">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Buscar Documentos</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Inicio:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaInicio">
+                                </div>
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Fin:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaFin">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn btn-primary btn-sm" data-bind="click: $root.BuscarDocumento">Buscar Documento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Todos los Documentos <span class="badge"
+                                                   data-bind="text: $root.ListaDocumento().length"></span>
+                    </h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-condensed table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Órgano Emisor</th>
+                                <th>Asunto</th>
+                                <th>Fecha de Derivación</th>
+                                <th>Estado</th>
+                                <th>Detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: ListaDocumento">
+                            <tr>
+                                <td data-bind="text: OrganoEmisor"></td>
+                                <td><b data-bind="text: Asunto"></b></td>
+                                <td data-bind="text: moment(ObjetoDerivacionDocumento.FechaDerivacion).format('LLL')"></td>
+                                <td>
+                                    <div data-bind="text: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Descripcion, attr: {class: 'label label-' + $root.InterpretarEstado(ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador) }"></div>
+                                </td>
+                                <td><button type="button" href="#ModalDocumentoDetalle" class="btn btn-xs btn-danger" data-bind="click: $parent.MostrarDetalles">Mostrar Detalles</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalDocumentoDetalle">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div data-bind="with: ObjetoDocumento">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Documento: <span><b data-bind="text: Numero"></b></span></h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                    <div class="sad-lista">
+                                        <p><b>Fecha del Registro: </b> <span data-bind="text: moment(FechaRegistro()).format('LLL')"></span></p>
+                                        <p><b>Tipo: </b> <span data-bind="text: ObjetoTipoDocumento.Descripcion"></span></p>
+                                        <p><b>Número: </b> <span data-bind="text: Numero"></span></p>
+                                        <p><b>Órgano Emisor: </b> <span data-bind="text: OrganoEmisor"></span></p>
+                                        <p>
+                                            <b>Estado: </b>
+                                            <div data-bind="text: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Descripcion, attr: {class: 'label label-' + $root.InterpretarEstado(ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() ) }"></div>
+                                        </p>
+                                        <form action="@Url.Action("Descargar","Derivacion")" method="POST" target="_blank" data-bind="visible: ObjetoDerivacionDocumento.IndicadorDescargar">
+                                            <input type="hidden" name="aiCodigo" data-bind="attr: {value: Codigo}" />
+                                            <p>
+                                                <b>Descargar Documento: </b>
+                                                <button type="submit" class="btn btn-link" data-bind="text: NombreArchivo"></button>
+                                            </p>
+                                        </form>
+                                        <hr>
+                                        <p data-bind="visible: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'D'"><b>Fecha de la Derivación: </b> <span data-bind="text: moment(ObjetoDerivacionDocumento.FechaDerivacion()).format('LLL')"></span></p>
+                                        <p data-bind="visible: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'A'"><b>Fecha de la Atención: </b> <span data-bind="text: moment(ObjetoDerivacionDocumento.FechaAtencion()).format('LLL')"></span></p>
+                                        <p data-bind="visible: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'R'"><b>Fecha de la Devolución: </b> <span data-bind="text: moment(ObjetoDerivacionDocumento.FechaDevolucion()).format('LLL')"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success btn-sm" data-bind="click: $root.AceptarDocumento, visible: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'L' || ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'D'">Aceptar</button>
+                            <button type="button" class="btn btn-danger btn-sm" data-bind="click: $root.MostrarDevolverDocumento, visible: ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'L' || ObjetoDerivacionDocumento.ObjetoEstadoDerivacion.Indicador() === 'D'">Devolver</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalDocumentoDevolucion">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div data-bind="with: ObjetoDocumento.ObjetoDerivacionDocumento">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Devolver el Documento</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Justificación:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                        <textarea cols="4" rows="4" class="form-control input-sm" placeholder="Ingrese la justificación" data-bind="value: Justificacion"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger btn-sm" data-bind="click: $root.DevolverDocumento">Devolver</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var Modal = {
+            DocumentoDevolucion: "#ModalDocumentoDevolucion",
+            DocumentoDetalle: "#ModalDocumentoDetalle"
+        }
+
+        var mapping = {
+            ObjetoBusquedaDocumento: {
+                create: function (options) {
+                    return new BusquedaDocumentoViewModel(options.data);
+                }
+            },
+            ObjetoDocumento: {
+                create: function (options) {
+                    return new DocumentoViewModel(options.data);
+                }
+            }
+        }
+
+        var BusquedaDocumentoViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, {}, self);
+        }
+
+        var DocumentoViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, {}, self);
+        }
+
+        var EntranteViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.Iniciar = function () {
+                self.ObtenerDocumento();
+            }
+
+            self.ObtenerDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerDocumentoXUsuario',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.BuscarDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/BuscarDocumentoXUsuario',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.InterpretarEstado = function (Estado) {
+                switch (Estado) {
+                    case 'D': { return 'primary'; break; };
+                    case 'L': { return 'info'; break; };
+                    case 'A': { return 'success'; break; };
+                    case 'R': { return 'danger'; break; };
+                    default: { return 'default'; break; };
+                }
+            }
+
+            self.InterpretarDecision = function (Decision) {
+                switch (Decision) {
+                    case true: { return { Descripcion: 'SI', Label: 'success' }; break; };
+                    case false: { return { Descripcion: 'NO', Label: 'danger' }; break; };
+                    default: { return { Descripcion: '', Label: 'default' }; break; };
+                }
+            }
+
+            self.MostrarDetalles = function (Documento) {
+                ko.mapping.fromJS(Documento, {}, self.ObjetoDocumento);
+                self.LeerDocumento();
+                $("#ModalDocumentoDetalle").modal({
+                    backdrop: 'static'
+                });
+            }
+
+            self.MostrarDevolverDocumento = function () {
+                $("#ModalDocumentoDevolucion").modal({
+                    backdrop: 'static'
+                });
+            }
+
+            self.LeerDocumento = function () {
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    contentType: "application/json",
+                    url: '/Derivacion/LeerDocumento',
+                    data: ko.mapping.toJSON(self.ObjetoDocumento.ObjetoDerivacionDocumento),
+                    success: function (response) {
+                        if (response.Error == false) {
+                            self.ObtenerDocumento();
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.AceptarDocumento = function () {
+                if (confirm(MensajeConfirmacion.Aceptar)) {
+                    $.ajax({
+                        type: EnvioHttp.Post,
+                        contentType: "application/json",
+                        url: '/Derivacion/AceptarDocumento',
+                        data: ko.mapping.toJSON(self.ObjetoDocumento.ObjetoDerivacionDocumento),
+                        success: function (response) {
+                            if (response.Error == false) {
+                                alert("Se ha aceptado el documento");
+                                self.ObtenerDocumento();
+                            } else {
+                                alert(response.Mensaje);
+                            }
+                            Bootstrap.CerrarModal(Modal.DocumentoDetalle);
+                        }
+                    });
+                }
+            }
+
+            self.DevolverDocumento = function () {
+                if (confirm(MensajeConfirmacion.Devolver)) {
+                    $.ajax({
+                        type: EnvioHttp.Post,
+                        contentType: "application/json",
+                        url: '/Derivacion/DevolverDocumento',
+                        data: ko.mapping.toJSON(self.ObjetoDocumento.ObjetoDerivacionDocumento),
+                        success: function (response) {
+                            if (response.Error == false) {
+                                alert("Se ha devuelto el documento");
+                                self.ObtenerDocumento();
+                            } else {
+                                alert(response.Mensaje);
+                            }
+                            Bootstrap.CerrarModal(Modal.DocumentoDetalle);
+                            Bootstrap.CerrarModal(Modal.DocumentoDevolucion);
+                        }
+                    });
+                }
+            }
+        }
+
+        var ViewModel = new EntranteViewModel(@Html.Raw(loEntranteViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+            ViewModel.Iniciar();
+        });
+
+    </script>
+}

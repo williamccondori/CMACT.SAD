@@ -1,0 +1,179 @@
+﻿@model CMACT.SAD.Presentacion.Web.Models.Derivacion.EstadoViewModel
+@using System.Web.Script.Serialization
+@{ string loEstadoViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Consultar Estado de Documentos Derivados"; }
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            <div data-bind="with: ObjetoBusquedaDocumento">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Buscar Documentos</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Inicio:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaInicio">
+                                </div>
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Fin:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaFin">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn btn-primary btn-sm" data-bind="click: $root.BuscarDocumento">Buscar Documento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Todos los Documentos <span class="badge" data-bind="text: $root.ListaDocumento().length"></span></h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-condensed table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Fecha de Registro</th>
+                                <th>Tipo</th>
+                                <th>Número</th>
+                                <th>Usuario de Secretaría</th>
+                                <th>Derivación [Área - Encargado - Estado - Permiso de Descarga]</th>
+                                <th>Documento Físico</th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach:  $root.ListaDocumento">
+                            <tr>
+                                <td data-bind="text: moment(FechaRegistro).format('LLL')"></td>
+                                <td data-bind="text: ObjetoTipoDocumento.Descripcion"></td>
+                                <td data-bind="text: Numero"></td>
+                                <td data-bind="text: UsuarioRegistro"></td>
+                                <td class="sad-tabla-interna">
+                                    <table class="table table-condensed">
+                                        <tbody data-bind="foreach: ListaDerivacionDocumento">
+                                            <tr>
+                                                <td data-bind="text: NombreUnidadOrganica"></td>
+                                                <td data-bind="text: NombreUsuario"></td>
+                                                <td>
+                                                    <div data-bind="text: ObjetoEstadoDerivacion.Descripcion, attr: {class: 'label label-' + $root.InterpretarEstado(ObjetoEstadoDerivacion.Indicador) }"></div>
+                                                </td>
+                                                <td>
+                                                    <div data-bind="text: $root.InterpretarDecision(IndicadorDescargar).Descripcion , attr: {class: 'label label-' + $root.InterpretarDecision(IndicadorDescargar).Label }"></div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td>
+                                    <form action="@Url.Action("Descargar","Derivacion")" method="POST" target="_blank">
+                                        <input type="hidden" name="aiCodigo" data-bind="attr: {value: Codigo}" />
+                                        <button type="submit" class="btn btn-xs btn-danger">Descargar Documento</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var mapping = {
+            'ObjetoBusquedaDocumento': {
+                create: function (options) {
+                    return new BusquedaDocumentoViewModel(options.data);
+                }
+            }
+        }
+
+        var BusquedaDocumentoViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, {}, self);
+        }
+
+        var EstadoViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.Iniciar = function () {
+                self.ObtenerDocumento();
+            }
+
+            self.ObtenerDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerDocumento',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.BuscarDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/BuscarDocumento',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.InterpretarEstado = function (Estado) {
+                switch (Estado)
+                {
+                    case 'D': { return 'primary'; break; };
+                    case 'L': { return 'info'; break; };
+                    case 'A': { return 'success'; break; };
+                    case 'R': { return 'danger'; break; };
+                    default: { return 'default'; break; };
+                }
+            }
+
+            self.InterpretarDecision = function (Decision) {
+                switch (Decision) {
+                    case true: { return { Descripcion: 'SI', Label: 'success' }; break; };
+                    case false: { return { Descripcion: 'NO', Label: 'danger' }; break; };
+                    default: { return { Descripcion: '', Label: 'default' }; break; };
+                }
+            }
+        }
+
+        var ViewModel = new EstadoViewModel(@Html.Raw(loEstadoViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+            ViewModel.Iniciar();
+        });
+
+    </script>
+}

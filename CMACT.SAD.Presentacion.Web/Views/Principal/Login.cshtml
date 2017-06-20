@@ -1,0 +1,165 @@
+﻿@{ Layout = null; }
+@model CMACT.SAD.Presentacion.Web.Models.Inicio.LoginViewModel
+@using System.Web.Script.Serialization
+@{ string loLoginViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Configuración"; }
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Sistema de Administración Documentaria</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/bootstrap-theme.min.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="/" class="navbar-brand">SAD</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="body-content">
+        <div class="bs3-espacio-md-arriba"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-24 col-sm-24 col-md-8 col-lg-8 col-md-offset-8 col-lg-offset-8">
+                    @if (!(TempData["Incorrecto"] == null))
+                    {
+                        <div class="alert alert-danger">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                            <strong>Error !</strong> @TempData["Incorrecto"]
+                        </div>
+                    }
+                    @if (!(TempData["Correcto"] == null))
+                    {
+                        <div class="alert alert-success">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                            <strong>Correcto !</strong> @TempData["Correcto"]
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-24 col-sm-24 col-md-offset-8 col-md-8 col-lg-offset-8 col-lg-8">
+                    <form action="@Url.Action("Login","Principal")" method="POST" role="form" data-bind="with: ObjetoLogin" id="FormularioLogin">
+                        <input type="hidden" name="asParametros" id="TxtParametros" />
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Iniciar Sesión</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div>
+
+                                </div>
+                                <div class="form-horizontal">
+                                    <div class="form-group">
+                                        <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Usuario:</label>
+                                        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                            <input type="text" class="form-control input-sm" placeholder="Ingrese el Usuario" data-bind="value: Usuario">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Contraseña:</label>
+                                        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                            <input type="password" class="form-control input-sm" placeholder="Ingrese la Contraseña" data-bind="value: Password">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                                <button type="reset" class="btn btn-default btn-sm">Cancelar</button>
+                                <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.ValidarUsuario">Ingresar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/moment.min.js"></script>
+    <script src="~/Scripts/moment-with-locales.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/respond.min.js"></script>
+    <script src="~/Scripts/knockout-3.4.0.js"></script>
+    <script src="~/Scripts/knockout.validation.min.js"></script>
+    <script src="~/Scripts/knockout.mapping-latest.js"></script>
+    <script src="~/Scripts/Sistema/Shared/UtilidadesBootstrap.js"></script>
+    <script src="~/Scripts/Sistema/Shared/UtilidadesKnockout.js"></script>
+    <script src="~/Scripts/Sistema/Shared/UtilidadesDefiniciones.js"></script>
+
+    <script>
+        var Formulario = {
+            Login: "#FormularioLogin"
+        }
+
+        var TextBox = {
+            Parametros: "#TxtParametros"
+        }
+
+        var mapping = {
+            ObjetoLogin: {
+                create: function (options) {
+                    return new UsuarioViewModel(options.data);
+                }
+            }
+        }
+
+        var UsuarioViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, {}, self);
+
+            self.Usuario.extend({ required: true });
+            self.Password.extend({ required: true });
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Reset = function () {
+                ko.mapping.fromJS(data, {}, self);
+            }
+        }
+
+        var LoginViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.ValidarUsuario = function () {
+                if (self.ObjetoLogin.isValid()) {
+                    $(TextBox.Parametros).val(Knockout.ConvertirJson(self.ObjetoLogin));
+                    $(Formulario.Login).submit();
+                } else {
+                    self.ObjetoLogin.Errores.showAllMessages(true);
+                }
+            }
+        }
+
+        var ViewModel = new LoginViewModel(@Html.Raw(loLoginViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+
+        });
+    </script>
+</body>
+
+</html>

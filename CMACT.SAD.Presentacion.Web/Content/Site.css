@@ -1,0 +1,42 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+.sad-error
+{
+    border: 1px dotted #f00;
+    background-color: #fee;
+}
+
+.bs3-espacio-md-arriba {
+    margin: 30px;
+}
+
+.sad-lista>p{
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.sad-tabla-interna{
+    padding: 0 !important;
+}
+
+.sad-tabla-interna .table{
+    border: none;
+    margin: 0 !important;
+    background-color: transparent;
+}

@@ -1,0 +1,536 @@
+﻿@model CMACT.SAD.Presentacion.Web.Models.Derivacion.GestionViewModel
+@using System.Web.Script.Serialization
+@{ string loGestionViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Gestionar Documentos"; }
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            @if (!(TempData["Incorrecto"] == null))
+            {
+            <div class="alert alert-danger">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <strong>Error !</strong> @TempData["Incorrecto"]
+            </div> 
+            }
+            @if (!(TempData["Correcto"] == null))
+            {
+                <div class="alert alert-success">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <strong>Correcto !</strong> @TempData["Correcto"]
+                </div>
+            }
+            <div data-bind="with: ObjetoBusquedaDocumento">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Buscar Documentos</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Inicio:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaInicio">
+                                </div>
+                                <label class="col-xs-24 col-sm-24 col-md-3 col-lg-3">Fecha de Fin:</label>
+                                <div class="col-xs-24 col-sm-24 col-md-5 col-lg-5">
+                                    <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                           data-bind="value: FechaFin">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn btn-primary btn-sm" data-bind="click: $root.BuscarDocumento">Buscar Documento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        Todos los Documentos
+                        <span class="badge" data-bind="text: $root.ListaDocumento().length"></span>
+                    </h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-condensed table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Número de Documento</th>
+                                <th>Asunto</th>
+                                <th>Fecha y Hora</th>
+                                <th>Derivación [Área - Encargado - Estado - Permiso de Descarga]</th>
+                                <th class="text-center">
+                                    <button type="button" class="btn btn-xs btn-success" data-bind="click: $root.MostrarFormularioDocumentoAgregar"><span class="glyphicon glyphicon-plus-sign"></span></button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach:  $root.ListaDocumento">
+                            <tr>
+                                <td data-bind="text: Numero"></td>
+                                <td data-bind="text: Asunto"></td>
+                                <td data-bind="text: moment(FechaRegistro).format('LLL')"></td>
+                                <td class="sad-tabla-interna">
+                                    <table class="table table-condensed">
+                                        <tbody data-bind="foreach: ListaDerivacionDocumento">
+                                            <tr>
+                                                <td data-bind="text: NombreUnidadOrganica"></td>
+                                                <td data-bind="text: NombreUsuario"></td>
+                                                <td>
+                                                    <div data-bind="text: ObjetoEstadoDerivacion.Descripcion, attr: {class: 'label label-' + $root.InterpretarEstado(ObjetoEstadoDerivacion.Indicador) }"></div>
+                                                </td>
+                                                <td>
+                                                    <div data-bind="text: $root.InterpretarDecision(IndicadorDescargar).Descripcion , attr: {class: 'label label-' + $root.InterpretarDecision(IndicadorDescargar).Label }"></div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-xs btn-warning" data-bind="click: $root.MostrarFormularioDocumentoModificar"><span class="glyphicon glyphicon-pencil"></span></button>
+                                    <button type="button" class="btn btn-xs btn-danger" data-bind="click: $root.EliminarDocumento"><span class="glyphicon glyphicon-remove-sign"></span></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="ModalDocumento">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form action="@Url.Action("Gestion","Derivacion")" method="POST" role="form" enctype="multipart/form-data" data-bind="with: ObjetoDocumento" id="frmDocumento">
+                    <input type="hidden" name="asParametros" id="txtParametros" />
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Ingrese los Datos Necesarios</h3>
+                        </div>
+                        <div class="panel-body" style="max-height: 400px; overflow-y: scroll">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Tipo de Documento:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-10 col-lg-10">
+                                        <select class="form-control input-sm" data-bind="options: $root.ListaTipoDocumento,
+                                                    optionsText: 'Descripcion',
+                                                    optionsValue: 'Codigo',
+                                                    optionsCaption: '[Seleccionar]',
+                                                    value: CodigoTipo"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Número del Documento:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-10 col-lg-10">
+                                        <input type="text" class="form-control input-sm" placeholder="Ingrese el valor" data-bind="value: Numero">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Órgano Emisor:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-10 col-lg-10">
+                                        <select class="form-control input-sm" data-bind="options: $root.ListaOrganoEmisor,
+                                                    optionsText: 'Descripcion',
+                                                    optionsValue: 'Codigo',
+                                                    optionsCaption: '[Seleccionar]',
+                                                    value: OrganoEmisor"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Adjunte el documento (PDF):</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-10 col-lg-10">
+                                        <input type="file" class="form-control input-sm" name="aoArchivo">
+                                        <a data-bind="value: NombreArchivo"></a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Asunto:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                        <textarea cols="2" rows="2" class="form-control input-sm" placeholder="Ingrese el valor" data-bind="value: Asunto"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Destinatarios: <span class="badge" data-bind="text: ListaDerivacionDocumento().length"></span></label>
+                                    <div class="col-xs-24 col-sm-24 col-md-24 col-lg-24">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-condensed table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Unidad Orgánica</th>
+                                                        <th>Vizualizar</th>
+                                                        <th>Descargar</th>
+                                                        <th class="text-center">
+                                                            <button type="button" class="btn btn-xs btn-success" data-bind="click: $root.MostrarFormularioJefatura"><span class="glyphicon glyphicon-plus-sign"></span></button>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody data-bind="foreach: ListaDerivacionDocumento">
+                                                    <tr data-bind="visible: Eliminado() == false">
+                                                        <td data-bind="text: NombreUnidadOrganica"></td>
+                                                        <td>
+                                                            <input type="checkbox" data-bind="enable: false, checked: IndicadorVisualizar, value: IndicadorVisualizar">
+                                                        </td>
+                                                        <td>
+                                                            <input type="checkbox" data-bind="checked: IndicadorDescargar, value: IndicadorDescargar">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-xs btn-danger" data-bind="click: $root.EliminarDerivacion"><span class="glyphicon glyphicon-remove-sign"></span></button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.AgregarDocumento">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalJefaturas">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">
+                                Todas las Jefaturas
+                                <span class="badge" data-bind="text: ListaJefatura().length"></span>
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-condensed table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Seleccionar</th>
+                                            <th>Unidad Orgánica</th>
+                                            <th>Nombre del Encargado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: ListaJefatura">
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" data-bind="value:NumeroUnidadOrganica  , checked: $parent.JefaturaSeleccionada">
+                                            </td>
+                                            <td data-bind="text: NombreUnidadOrganica"></td>
+                                            <td data-bind="text: NombreEncargado"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div data-bind="text: ko.toJSON($root.JefaturaSeleccionada)"></div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.AgregarDerivacion">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var Formulario = {
+            Documento: "#frmDocumento"
+        }
+
+        var TextBox = {
+            Parametros: "#txtParametros"
+        }
+
+        var mapping = {
+            ObjetoDocumento: {
+                create: function (options) {
+                    return new DocumentoViewModel(options.data);
+                }
+            },
+            ObjetoBusquedaDocumento: {
+                create: function (options) {
+                    return new BusquedaDocumentoViewModel(options.data);
+                }
+            }
+        }
+
+        var BusquedaDocumentoViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, {}, self);
+        }
+
+        var DocumentoViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, {}, self);
+
+            self.Numero.extend({ required: true });
+            self.CodigoTipo.extend({ required: true });
+            self.OrganoEmisor.extend({ required: true });
+            self.Asunto.extend({ required: true });
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Reset = function () {
+                ko.mapping.fromJS(data, {}, self);
+            }
+        }
+
+        var GestionViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.ListaOrganoEmisor = [
+                {
+                    Codigo: 'GERENCIA MANCOMUNADA',
+                    Descripcion: 'GERENCIA MANCOMUNADA'
+                },
+                {
+                    Codigo: 'COMITÉ DE GERENCIA',
+                    Descripcion: 'COMITÉ DE GERENCIA'
+                }
+            ];
+
+            self.JefaturaSeleccionada = ko.observableArray();
+
+            self.Iniciar = function () {
+                self.ObtenerDocumento();
+                self.ObtenerTipoDocumento();
+                self.ObtenerJefatura();
+            }
+
+            self.ObtenerDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerDocumento',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.ObtenerTipoDocumento = function () {
+                self.ListaTipoDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerTipoDocumento',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaTipoDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.ObtenerJefatura = function () {
+                self.ListaJefatura([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerJefatura',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaJefatura.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.BuscarDocumento = function () {
+                self.ListaDocumento([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    contentType: "application/json",
+                    url: '/Derivacion/BuscarDocumento',
+                    data: ko.mapping.toJSON(self.ObjetoBusquedaDocumento),
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaDocumento.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+
+            self.AgregarDerivacion = function () {
+
+                ko.utils.arrayForEach(self.JefaturaSeleccionada(), function (Jefatura) {
+                    
+                    var ObjetoSelecionado = Knockout.BuscarObjeto(self.ListaJefatura, 'NumeroUnidadOrganica', Jefatura);
+
+                    var Derivacion = Knockout.BuscarObjeto(self.ObjetoDocumento.ListaDerivacionDocumento, 'NumeroUnidadOrganica', ObjetoSelecionado.NumeroUnidadOrganica);
+
+                    if (Derivacion == null) {
+                        var NuevaDerivacion = {
+                            NumeroUnidadOrganica: ko.observable(ObjetoSelecionado.NumeroUnidadOrganica),
+                            NombreUnidadOrganica: ko.observable(ObjetoSelecionado.NombreUnidadOrganica),
+                            CodigoUsuario: ko.observable(ObjetoSelecionado.CodigoEncargado),
+                            NombreUsuario: ko.observable(ObjetoSelecionado.NombreEncargado),
+                            IndicadorVisualizar: ko.observable(true),
+                            IndicadorDescargar: ko.observable(true),
+                            Eliminado: ko.observable(false)
+                        };
+
+                        self.ObjetoDocumento.ListaDerivacionDocumento.push(NuevaDerivacion);
+                    } else {
+                        Derivacion.Eliminado(false);
+                        Derivacion.EstadoObjeto(EstadoObjeto.Modificado);
+                    }
+
+                });
+
+                $('#ModalJefaturas').modal('toggle');
+            }
+
+            self.EliminarDerivacion = function (Derivacion)
+            {
+                if (confirm(MensajeConfirmacion.Eliminar)) {
+                    if (Derivacion.EstadoObjeto() == EstadoObjeto.Nuevo) {
+                        self.Estrategia.Indicadores.remove(Derivacion);
+                    } else {
+                        Derivacion.Eliminado(true);
+                        Derivacion.EstadoObjeto(EstadoObjeto.Modificado);
+                    }
+                }
+            }
+
+            self.BuscarJefaturaDerivacion = function (NumeroUnidadOrganica) {
+                ko.utils.arrayForEach(self.ObjetoDocumento.ListaDerivacionDocumento(), function (Derivacion) {
+                    if (Derivacion.NumeroUnidadOrganica === NumeroUnidadOrganica) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+            }
+
+            self.MostrarFormularioJefatura = function () {
+
+                self.JefaturaSeleccionada([]);
+
+                ko.utils.arrayForEach(self.ObjetoDocumento.ListaDerivacionDocumento(), function (Derivacion) {
+                    if (Derivacion.Eliminado() == false) {
+                        self.JefaturaSeleccionada.push(Derivacion.NumeroUnidadOrganica());
+                    }
+                });
+
+                $("#ModalJefaturas").modal({
+                    backdrop: 'static'
+                });
+            }
+
+
+            self.MostrarFormularioDocumentoAgregar = function () {
+                self.ObjetoDocumento.Reset();
+                self.ObjetoDocumento.EstadoObjeto(EstadoObjeto.Nuevo);
+
+                $("#ModalDocumento").modal({
+                    backdrop: 'static'
+                });
+            }
+
+            self.MostrarFormularioDocumentoModificar = function (Documento) {
+                ko.mapping.fromJS(Documento, {}, self.ObjetoDocumento);
+                self.ObjetoDocumento.EstadoObjeto(EstadoObjeto.Modificado);
+
+                $("#ModalDocumento").modal({
+                    backdrop: 'static'
+                });
+            }
+
+
+            self.AgregarDocumento = function () {
+                if (self.ObjetoDocumento.isValid()) {
+                    if (confirm(MensajeConfirmacion.Guardar)) {
+                        $(TextBox.Parametros).val(Knockout.ConvertirJson(self.ObjetoDocumento));
+                        $(Formulario.Documento).submit();
+                    }
+                } else {
+                    self.ObjetoDocumento.Errores.showAllMessages(true);
+                }
+            }
+
+            self.ModificarDocumento = function () {
+                if (self.ObjetoDocumento.isValid()) {
+                    if (confirm(MensajeConfirmacion.Guardar)) {
+                        $(TextBox.Parametros).val(Knockout.ConvertirJson(self.ObjetoDocumento));
+                        $(Formulario.Documento).submit();
+                    }
+                } else {
+                    self.ObjetoDocumento.Errores.showAllMessages(true);
+                }
+            }
+
+            self.EliminarDocumento = function () {
+
+            }
+
+            self.InterpretarEstado = function (Estado) {
+                switch (Estado) {
+                    case 'D': { return 'primary'; break; };
+                    case 'L': { return 'info'; break; };
+                    case 'A': { return 'success'; break; };
+                    case 'R': { return 'danger'; break; };
+                    default: { return 'default'; break; };
+                }
+            }
+
+            self.InterpretarDecision = function (Decision) {
+                switch (Decision) {
+                    case true: { return { Descripcion: 'SI', Label: 'success' }; break; };
+                    case false: { return { Descripcion: 'NO', Label: 'danger' }; break; };
+                    default: { return { Descripcion: '', Label: 'default' }; break; };
+                }
+            }
+        }
+
+        var ViewModel = new GestionViewModel(@Html.Raw(loGestionViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+            ViewModel.Iniciar();
+        });
+
+    </script>
+}

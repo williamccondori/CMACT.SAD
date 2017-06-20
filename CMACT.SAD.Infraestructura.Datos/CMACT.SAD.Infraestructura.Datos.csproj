@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{981D3C4C-A54A-4460-A571-117854CB0BCF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CMACT.SAD.Infraestructura.Datos</RootNamespace>
+    <AssemblyName>CMACT.SAD.Infraestructura.Datos</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SAD\Contextos\SadContext.cs" />
+    <Compile Include="SAD\Mapeos\ceDcDerivacionDocumentoConfiguracion.cs" />
+    <Compile Include="SAD\Mapeos\ceDcDocumentoConfiguracion.cs" />
+    <Compile Include="SAD\Mapeos\ceDcEstadoDerivacionConfiguracion.cs" />
+    <Compile Include="SAD\Mapeos\ceDcMovimientoDocumentoConfiguracion.cs" />
+    <Compile Include="SAD\Mapeos\ceDcTipoDocumentoConfiguracion.cs" />
+    <Compile Include="SAD\Mapeos\ceDcTipoMovimientoDocumentoConfiguracion.cs" />
+    <Compile Include="SAD\Repositorios\Derivacion\DerivacionDocumentoRepository.cs" />
+    <Compile Include="SAD\Repositorios\Derivacion\DocumentoRepository.cs" />
+    <Compile Include="SAD\Repositorios\Derivacion\EstadoDerivacionRepository.cs" />
+    <Compile Include="SAD\Repositorios\Derivacion\TipoDocumentoRepository.cs" />
+    <Compile Include="Shared\BaseConfiguracion.cs" />
+    <Compile Include="Shared\BaseContext.cs" />
+    <Compile Include="Shared\BaseRepository.cs" />
+    <Compile Include="Utilidades\Helpers.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SAF\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CMACT.SAD.Aplicacion.DTOs\CMACT.SAD.Aplicacion.DTOs.csproj">
+      <Project>{77c22d8d-c5b9-48ea-911b-ff43f533f950}</Project>
+      <Name>CMACT.SAD.Aplicacion.DTOs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CMACT.SAD.Dominio.Entidades\CMACT.SAD.Dominio.Entidades.csproj">
+      <Project>{c89f9452-e1e0-462c-8860-89828a12cb74}</Project>
+      <Name>CMACT.SAD.Dominio.Entidades</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CMACT.SAD.Dominio.Logica\CMACT.SAD.Dominio.Logica.csproj">
+      <Project>{9ff8e611-6e76-4d26-bd0b-ec4ff06bca62}</Project>
+      <Name>CMACT.SAD.Dominio.Logica</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

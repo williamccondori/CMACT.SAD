@@ -1,0 +1,165 @@
+﻿@model CMACT.SAD.Presentacion.Web.Models.Derivacion.InicioViewModel
+@using System.Web.Script.Serialization
+@{ string loInicioViewModel = new JavaScriptSerializer().Serialize(Model); }
+
+@{ ViewBag.Title = "Derivación de Documentos"; }
+
+<div class="bs3-espacio-md-arriba"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-xs-24 col-sm-12 col-md-8 col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Todas las Tareas <span class="badge">4</span></h3>
+                </div>
+                <div class="list-group">
+                    <a href="/Derivacion/Gestion" class="list-group-item">Gestionar Documentos</a>
+                    <a href="/Derivacion/Estado" class="list-group-item">Consultar Estado de Documentos Derivados</a>
+                    <a href="/Derivacion/Entrante" class="list-group-item">Consultar Documentos Derivados Entrantes</a>
+                    <a href="#ModalDerivacion" class="list-group-item" data-toggle="modal">Generar Reportes de Derivación de Documentos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ModalDerivacion">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form action="@Url.Action("Reporte","Derivacion")" method="POST" role="form" data-bind="with: ObjetoReporte" id="FormularioReporte" target="_blank">
+                    <input type="hidden" name="asParametros" id="TxtParametros" />
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Generar Reporte de Derivación de Documentos</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Fecha de Inicio:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-12 col-lg-12">
+                                        <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                               data-bind="value: FechaInicio">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Fecha de Fin:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-12 col-lg-12">
+                                        <input type="date" class="form-control input-sm" placeholder="Ingrese el valor"
+                                               data-bind="value: FechaFin">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Usuario de Secretaría:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-12 col-lg-12">
+                                        <input type="text" class="form-control input-sm" placeholder="Ingrese el valor"
+                                               data-bind="value: UsuarioSecretaria">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-24 col-sm-24 col-md-24 col-lg-24">Estado de la Derivación:</label>
+                                    <div class="col-xs-24 col-sm-24 col-md-12 col-lg-12">
+                                        <select class="form-control input-sm" 
+                                                data-bind="options: $root.ListaEstadoDerivacion,
+                                                    optionsText: 'Descripcion',
+                                                    optionsValue: 'Codigo',
+                                                    optionsCaption: '[Seleccionar]',
+                                                    value: EstadoDocumento"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary btn-sm" data-bind="click: $root.GenerarReporte">Generar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        var Formulario = {
+            Reporte: "#FormularioReporte"
+        }
+
+        var TextBox = {
+            Parametros: "#TxtParametros"
+        }
+
+        var mapping = {
+            'ObjetoReporte': {
+                create: function (options) {
+                    return new ReporteViewModel(options.data);
+                }
+            }
+        }
+
+        var ReporteViewModel = function (data) {
+            var self = this;
+            ko.mapping.fromJS(data, {}, self);
+
+            self.FechaInicio.extend({ required: true });
+            self.FechaFin.extend({ required: true });
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Reset = function () {
+                ko.mapping.fromJS(data, {}, self);
+            }
+        }
+
+        var InicioViewModel = function (data) {
+
+            var self = this;
+
+            ko.mapping.fromJS(data, mapping, self);
+
+            self.Errores = ko.validation.group(self, { deep: false });
+
+            self.Iniciar = function () {
+                self.ObtenerEstadoDerivacion();
+            }
+
+            self.ObtenerEstadoDerivacion = function () {
+                self.ListaEstadoDerivacion([]);
+                $.ajax({
+                    type: EnvioHttp.Post,
+                    url: '/Derivacion/ObtenerEstadoDerivacion',
+                    success: function (response) {
+                        if (response.Error == false) {
+                            ko.utils.arrayForEach(response.Datos, function (elemento) {
+                                self.ListaEstadoDerivacion.push(elemento);
+                            });
+                        } else {
+                            alert(response.Mensaje);
+                        }
+                    }
+                });
+            }
+
+            self.GenerarReporte = function () {
+                if (self.ObjetoReporte.isValid()) {
+                    $(TextBox.Parametros).val(Knockout.ConvertirJson(self.ObjetoReporte));
+                    $(Formulario.Reporte).submit();
+                } else {
+                    self.ObjetoReporte.Errores.showAllMessages(true);
+                }
+            }
+        }
+
+        var ViewModel = new InicioViewModel(@Html.Raw(loInicioViewModel));
+
+        ko.applyBindingsWithValidation(ViewModel);
+
+        $(document).ready(function () {
+            ViewModel.Iniciar();
+        });
+
+    </script>
+}
